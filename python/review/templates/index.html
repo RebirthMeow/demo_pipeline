@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>JACTF highlight reviewer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <div class="title">JACTF highlight reviewer</div>
+  <div class="counts" id="counts">loading...</div>
+  <button id="finish-btn" class="finish-btn" disabled title="finish the session and write a durable log">
+    Finish session
+  </button>
+</header>
+
+<!-- close-out modal — flips between three states: confirm → saved → closed -->
+<div id="modal" class="modal hidden" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<main>
+  <section class="player">
+    <video id="vid" controls autoplay muted loop playsinline preload="auto"></video>
+    <div class="player-meta" id="meta">—</div>
+  </section>
+
+  <section class="vote-row">
+    <button class="vote bad"    data-label="bad"    title="press 1">
+      <span class="emoji">👎</span><span class="lbl">bad</span><span class="key">1</span>
+    </button>
+    <button class="vote ok"     data-label="ok"     title="press 2">
+      <span class="emoji">○</span><span class="lbl">ok</span><span class="key">2</span>
+    </button>
+    <button class="vote good"   data-label="good"   title="press 3">
+      <span class="emoji">👍</span><span class="lbl">good</span><span class="key">3</span>
+    </button>
+    <button class="vote ignore" data-label="ignore" title="press 4">
+      <span class="emoji">⊘</span><span class="lbl">ignore</span><span class="key">4</span>
+    </button>
+  </section>
+
+  <section class="nav-row">
+    <button class="nav prev" title="←">‹ prev</button>
+    <button class="nav next" title="→">next ›</button>
+    <button class="nav undo" title="u">↶ undo</button>
+    <span class="spacer"></span>
+    <button class="nav play"  title="space — pause / play">⏯ pause</button>
+    <button class="nav replay" title="r — replay from start">↺ replay</button>
+    <button class="nav mute"  title="m — mute / unmute">🔇 unmute</button>
+  </section>
+
+  <section class="strip" id="strip"></section>
+
+  <footer class="hint">
+    vote: <kbd>1</kbd> bad <kbd>2</kbd> ok <kbd>3</kbd> good <kbd>4</kbd> ignore  ·
+    nav: <kbd>←</kbd>/<kbd>→</kbd>  ·
+    video: <kbd>space</kbd> pause <kbd>r</kbd> replay <kbd>m</kbd> mute
+    <kbd>j</kbd>/<kbd>l</kbd> seek-1s <kbd>,</kbd>/<kbd>.</kbd> frame-step  ·
+    <kbd>u</kbd> undo
+  </footer>
+</main>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

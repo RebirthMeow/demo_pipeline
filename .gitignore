@@ -1,0 +1,136 @@
+# =============================================================================
+# .gitignore for the JACTF highlight pipeline
+# =============================================================================
+#
+# Goal: commit code, configs, and the training corpus.  Exclude raw demos
+# (regenerable from the JACTF archive), renders, venvs, transient state, and
+# the JKA install (commercial software, plus huge).
+#
+# Whitelist approach for archive/ — ignore the data, keep the README docs so
+# the audit trail of what's archived survives.
+# =============================================================================
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyz
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── virtual environments ─────────────────────────────────────────────────────
+# Every script either uses venv at repo root, python/predict/venv, or creates
+# python/review/venv on first run.  All are recreated by run.bat / setup.
+venv/
+venv_nlp/
+.venv/
+*/venv/
+**/venv/
+**/Scripts/
+**/site-packages/
+
+# ── secrets and per-machine config ───────────────────────────────────────────
+.env
+.env.local
+*.local
+
+# ── IDE / OS junk ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── demos and renders (large; regenerable from JACTF / re-rendering) ─────────
+*.dm_26
+*.dm_meta
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.png
+*.jpg
+*.jpeg
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# ── JKA install (commercial, huge) but keep mme configs ──────────────────────
+# IMPORTANT: use `dir/**` (match contents) NOT `dir/` (match the dir entry — that
+# stops descent and breaks all the `!` re-includes below).  We then explicitly
+# re-include the parent path tree down to mme/ so git descends, and pick out
+# the specific files (configs + render_resilient.bat) we actually want.
+a full jka install/**
+
+# re-include the directory tree so git descends through it
+!a full jka install/game_directory/
+!a full jka install/game_directory/Jedi Academy/
+!a full jka install/game_directory/Jedi Academy/GameData/
+!a full jka install/game_directory/Jedi Academy/GameData/mme/
+
+# re-include the specific files we actually want under version control
+!a full jka install/game_directory/Jedi Academy/GameData/mme/*.cfg
+!a full jka install/game_directory/Jedi Academy/GameData/render_resilient.bat
+
+# ── training data primaries (huge; backed up separately if desired) ──────────
+# These produced the aggregated corpus.  Aggregated JSONs are the model state
+# and ARE committed.  Source demos are not — too big for git, and recoverable
+# from the demo archive if needed.
+demo files/
+emails/
+test_folder/
+python/trimming/demos source/
+
+# demos output: ignore everything inside (use /** so descent isn't blocked),
+# then re-include trimmed_map.json — the small but critical mapping file.
+python/trimming/demos output/**
+!python/trimming/demos output/
+!python/trimming/demos output/trimmed_map.json
+
+# ── per-set predict outputs (regenerable from training corpus + scanner) ─────
+python/predict/*_frags.json
+python/predict/*_frags.ensemble_predictions.csv
+python/predict/*_frags.csv
+# But KEEP the four aggregated training corpora — these ARE the model.
+!python/predict/good_client_frags_aggregated.json
+!python/predict/ok_client_frags_aggregated.json
+!python/predict/bad_client_frags_aggregated.json
+!python/predict/ignore_frags_aggregated.json
+
+# Per-write timestamped backups in predict/backup/ — local safety net, not
+# meant to be shared (the canonical state is the live aggregated files).
+python/predict/backup/
+
+# ── review UI per-user state ─────────────────────────────────────────────────
+python/review/review_state.json
+python/review/current_session.json
+python/review/sessions/
+
+# ── Discord review bot runtime artifacts ─────────────────────────────────────
+# votes.db has community votes (durable, but per-deployment — back up via
+# rclone if you care).  exports/ holds /export-labels JSON dumps (regenerable
+# from votes.db on demand).
+python/reviewbot/votes.db
+python/reviewbot/votes.db-journal
+python/reviewbot/votes.db-wal
+python/reviewbot/votes.db-shm
+python/reviewbot/exports/
+python/reviewbot/.env
+
+# ── archive ──────────────────────────────────────────────────────────────────
+archive/
+
+# ── logs and other transient ─────────────────────────────────────────────────
+*.log
+regen_perf.log
+
+# ── editor backup files ──────────────────────────────────────────────────────
+*.bak
+*.orig
+*~
