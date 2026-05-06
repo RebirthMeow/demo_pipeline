@@ -2,7 +2,7 @@
 
 Community-curated highlight labelling via Discord reactions. Posts rendered clips to a designated channel, community members react with 👎 / 😐 / 👍 / 🗑️, votes accumulate in a local sqlite DB. Operator periodically exports for analysis.
 
-For the full project context see [`C:\jactf_pipeline\README.md`](../../README.md).
+For the full project context see [`<repo_root>\README.md`](../../README.md).
 
 ## Architecture at a glance
 
@@ -95,7 +95,7 @@ Do not commit this `.env` file. It is already ignored by `.gitignore`.
 ### 5. Run
 
 ```powershell
-cd C:\jactf_pipeline\python\reviewbot
+cd <repo_root>\python\reviewbot
 .\run.bat
 ```
 
@@ -224,8 +224,6 @@ The bot only needs to be online to:
 It does NOT need to be online when:
 - Community is voting (reactions accumulate on Discord)
 - You're rendering / labelling locally (those are independent paths)
-
-If you want always-on later (immediate vote acknowledgement, no startup-sync delay), Fly.io free tier handles it: copy the bot files, set env vars on Fly's secret store, persistent volume for `votes.db`. Same code, same DB, ~30 min migration.
 
 ## Troubleshooting
 

@@ -92,6 +92,8 @@ python/trimming/demos source/
 python/trimming/demos output/**
 !python/trimming/demos output/
 !python/trimming/demos output/trimmed_map.json
+python/trimming/*.csv
+python/trimming/old/
 
 # ── per-set predict outputs (regenerable from training corpus + scanner) ─────
 python/predict/*_frags.json
@@ -104,8 +106,9 @@ python/predict/*_frags.csv
 !python/predict/ignore_frags_aggregated.json
 
 # Per-write timestamped backups in predict/backup/ — local safety net, not
-# meant to be shared (the canonical state is the live aggregated files).
+# the canonical state is the live aggregated files).
 python/predict/backup/
+python/predict/models/
 
 # ── review UI per-user state ─────────────────────────────────────────────────
 python/review/review_state.json
@@ -129,6 +132,7 @@ archive/
 # ── logs and other transient ─────────────────────────────────────────────────
 *.log
 regen_perf.log
+python/fetch/seen_matches.json
 
 # ── editor backup files ──────────────────────────────────────────────────────
 *.bak

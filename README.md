@@ -1,3 +1,6 @@
+WARNING: THIS IS ALL AI GENERATED
+
+
 # Jedi Academy CTF Highlight Pipeline
 
 End-to-end ML-driven highlight-reel pipeline for Jedi Academy multiplayer
@@ -7,9 +10,7 @@ clips, renders them to mp4 via jaMME (a Q3-derivative movie engine), and
 hands the rendered clips to a local Flask review UI for human labelling.
 The labels feed back into the training corpus for the next iteration.
 
-This is a personal/community tool for a specific multiplayer FPS community —
-not a generic pipeline. Several pieces are hardcoded to my install path,
-my Discord identity, and my JACTF account.
+This is a personal tool
 
 ## Pipeline at a glance
 
@@ -31,69 +32,21 @@ Every stage is **idempotent**. Re-running with the same inputs is safe. Each
 stage tracks "what's already been done" in its own state file (`seen_matches.json`,
 `render_state.json`, `review_state.json`, etc.) and only does fresh work.
 
-## Quick start
-
-```powershell
-cd C:\jactf_pipeline
-.\run_pipeline.ps1                          # full pipeline, last 24h of new demos
-.\run_pipeline.ps1 -Since 7d -LimitClips 5  # last week, render only first 5
-.\run_pipeline.ps1 -SkipFetch -SkipRegen    # already have demos and .dm_meta?
-```
-
-Then open the review UI:
-
-```powershell
-cd C:\jactf_pipeline\python\review
-.\run.bat
-# open http://127.0.0.1:5057/
-```
-
-### Prerequisites
-
-- **Windows** with Python 3.11+ on PATH. (3.13 used in the canonical venv.)
-- **ffmpeg.exe** on PATH. **This is the gotcha.** If ffmpeg goes missing,
-  jaMME's capture pipe writes 0-byte frames silently and you get
-  "no capture produced after 90s wait" with empty `mme/capture/fNNNN/` dirs.
-  Verify with `ffmpeg -version` from a cmd in `GameData/`.
-- **A full JKA install** at `C:\jactf_pipeline\a full jka install\game_directory\Jedi Academy\GameData\`,
-  including `jamme.exe`, `rd-jamme_x86.dll`, base assets, and `mme/` subtree.
-- **DemoTrimmer.exe** at `C:\jactf_pipeline\python\trimming\demotrimmer.exe`.
-- **JACTF account credentials** (the fetcher reuses cookies from a prior browser session).
-
-### Verify the install
-
-```powershell
-# from PowerShell, anywhere
-python --version              # >= 3.11
-ffmpeg -version               # any recent build
-Test-Path "C:\jactf_pipeline\jkdemometadata.exe"
-Test-Path "C:\jactf_pipeline\python\trimming\demotrimmer.exe"
-Test-Path "C:\jactf_pipeline\a full jka install\game_directory\Jedi Academy\GameData\jamme.exe"
-```
-
-All four should be green.
-
 ## File layout
 
 ```
-C:\jactf_pipeline\
+<repo_root>\
 ├── README.md                      ← you are here
-├── file_inventory_audit.txt       ← user-curated audit driving the archive layout
 ├── run_pipeline.ps1               ← top-level orchestrator (stages 0-5)
 ├── regen_pipeline.ps1             ← stages 1+2 (jkdemometadata + scanner)
 ├── jkdemometadata.exe             ← custom C++ demo parser
 ├── scanner.py                     ← stage 2 aggregator
 ├── regen_perf.log                 ← per-demo timing for jkdemometadata
-├── archive\                       ← stale-but-preserved files (see archive\README.md)
-│   ├── legacy_predict\            ← update_good/bad/ignore + xen/al frags + new_*.txt
-│   ├── old_per_set_corpora\       ← 3xen/oh/xen2/xen3/fiends/down/down2/download frags
-│   ├── old_aggregated\            ← root-level *_aggregated.json no code reads
-│   ├── chat_tools\                ← insults/jokes/build_chatdb/extract-chats + venv_nlp + python_chats
-│   ├── training_demos\            ← demo_files (good/bad/ok 1516 demos), emails (28 demos)
-│   ├── dm_meta_backups\           ← dm_meta_backup_2026-04-27_*.tar.gz
-│   ├── scattered_demos\           ← root-level one-off .dm_26 + test_folder duplicate
-│   ├── old_fetchers\              ← chromedriver + predecessor JACTF download scripts
-│   └── utility_scripts\           ← convert-demos.ps1 (manual ad-hoc tool)
+├── benchmark_stage12.ps1          ← benchmark utility
+├── full_benchmark.ps1             ← pipeline benchmarking
+├── test_parallel.ps1              ← parallel test script
+├── find_troublesome_frags.py      ← model troubleshooting
+├── stage_troublesome_frags.py     ← model troubleshooting
 │
 ├── a full jka install\
 │   └── game_directory\Jedi Academy\GameData\
@@ -142,8 +95,8 @@ C:\jactf_pipeline\
 │   │   ├── _jactf_new_frags.json              ← current per-set frag corpus
 │   │   ├── _jactf_new_frags.ensemble_predictions.csv  ← current predict output
 │   │   ├── backup\                            ← auto-backups of aggregated files
-│   │   └── (legacy update_good/bad/ignore + older corpora moved to archive\legacy_predict\
-│   │        and archive\old_per_set_corpora\ — see archive\README.md)
+│   │   ├── models\                            ← ensemble models cache (e.g. ensemble_cache.joblib)
+│   │   
 │   │
 │   ├── review\                            ← stage 6 — Flask review UI
 │   │   ├── README.md                      ← detailed per-tool docs
@@ -156,9 +109,8 @@ C:\jactf_pipeline\
 │   │   ├── templates\index.html
 │   │   └── static\{style.css, app.js}
 │   │
-│   └── chats\                             ← unrelated — chat extraction / NLP
-└── (top-level *.dm_26, *.dm_meta scattered, *_aggregated.json from older eras)
-```
+│   └
+└
 
 ## Stage 0 — fetch new demos from JACTF
 
@@ -182,13 +134,6 @@ python python\fetch\fetch_jactf_demos.py --since 1d --until 0d
 python python\fetch\fetch_jactf_demos.py --since 30d --max-matches 5 --dry-run
 ```
 
-### Common errors
-
-- **401 from JACTF**: cookies are stale. Open `demos.jactf.com` in a browser,
-  log in, the script picks up the refreshed cookie from your default profile.
-- **"window > 30 days"**: split the backfill into multiple windows
-  (`-Since 30d`, then `-Since 60d -Until 30d`, etc.).
-
 ## Stages 1+2 — extract metadata + aggregate
 
 `regen_pipeline.ps1` orchestrates these together because they're tightly coupled.
@@ -198,12 +143,6 @@ python python\fetch\fetch_jactf_demos.py --since 30d --max-matches 5 --dry-run
 A custom C++ demo parser. For each `.dm_26`, walks the netcode frame-by-frame
 and emits a `<demo>.dm_26.dm_meta` JSON file with per-tick game state: positions,
 weapons, view angles, kill events, flag captures, etc.
-
-Cost: ~172 CPU-seconds per full match demo on a current laptop. The pipeline
-parallelizes via PowerShell jobs. Per-demo timing logged to `regen_perf.log`.
-
-This is the slow part. If you're iterating on prediction logic, use
-`-SkipMetaRegen` so it just re-runs the scanner.
 
 ### Stage 2: `scanner.py`
 
@@ -259,14 +198,19 @@ with a `consensus` column (`good` | `ok` | `bad`) and a `score` column.
 ### CLI
 
 ```powershell
-cd C:\jactf_pipeline\python\predict
+cd <repo_root>\python\predict
 .\venv\Scripts\python.exe predict_frags_ensemble.py _jactf_new_frags.json
 .\venv\Scripts\python.exe predict_frags_ensemble.py _jactf_new_frags.json --threshold-mode high-precision
+.\venv\Scripts\python.exe predict_frags_ensemble.py _jactf_new_frags.json --force-retrain
 ```
 
 `--threshold-mode high-precision` biases each weapon's threshold toward
 fewer-but-more-confident predictions — useful when you don't want to wade
 through a long false-positive review queue.
+
+Models are automatically cached to `models/ensemble_cache.joblib` to speed up
+repeated runs on the same training data. Use `--force-retrain` to bypass the
+cache if needed.
 
 ## Stage 4 — build jaMME demolist + manifest
 
@@ -293,7 +237,7 @@ re-run after the render fully exits).
 ### CLI
 
 ```powershell
-cd C:\jactf_pipeline
+cd <repo_root>
 python python\predict\build_jamme_demolist.py --csv python\predict\_jactf_new_frags.ensemble_predictions.csv
 python python\predict\build_jamme_demolist.py --csv ... --limit 5    # smoke test
 ```
@@ -335,7 +279,7 @@ On success, moves `mme/capture/<cid>/clip.mp4` → `mme/captures/<cid>.mp4`.
 ### CLI
 
 ```powershell
-cd C:\jactf_pipeline\a full jka install\game_directory\Jedi Academy\GameData
+cd <repo_root>\a full jka install\game_directory\Jedi Academy\GameData
 .\render_resilient.bat                          # render everything pending
 .\render_resilient.bat --status                 # just print state, don't render
 .\render_resilient.bat --limit 3                # smoke test
@@ -365,7 +309,7 @@ See `python/review/README.md` for the full per-tool reference.
 ### CLI
 
 ```powershell
-cd C:\jactf_pipeline\python\review
+cd <repo_root>\python\review
 .\run.bat
 # http://127.0.0.1:5057/
 ```
@@ -438,228 +382,6 @@ in a single canonical location:
 Wiping any of these resets the corresponding stage. Most are safe to delete
 selectively if a stage misbehaves and you want a clean re-run.
 
-## Known gotchas
+## Warning
 
-These are everything that has surprised someone (mostly me) at least once.
-Each was a real debug session.
-
-### ffmpeg disappearing from PATH
-
-jaMME's `mme_pipeCommand` is `ffmpeg -f avi -i - ...`. If `ffmpeg` isn't on
-PATH, Windows runs `cmd /c ffmpeg ...` which prints "not recognized" and
-exits, leaving jaMME's pipe handle pointing at a closed stdin.
-
-**Symptom**: every `FS_Write` call writes 0 bytes. Hundreds of
-`FS_Write: 0 bytes written` lines in `mme/render_logs/fNNNN.log`.
-`mme/capture/fNNNN/` is empty (no `clip.mkv`, no PNGs). The 90s
-ffmpeg-finalize poll times out cleanly because there was nothing to finalize.
-
-**Fix**: install ffmpeg, ensure `ffmpeg -version` works in the cwd you run
-the pipeline from. Or drop a single `ffmpeg.exe` into `GameData/` (cwd
-resolution wins over PATH for bare names).
-
-**Prevention**: consider editing `mme/mmeconfig.cfg` to call `ffmpeg.exe`
-explicitly. The bare-name resolution is too quiet about its failure mode.
-
-### DemoTrimmer treats `time_raw` as match-time
-
-`demotrimmer.exe` interprets timestamps as MATCH-time (post-warmup). For
-older datasets (xen / al / oh) `time_raw == match_time` so the bug was
-invisible. JACTF demos record warmup, so `time_raw` is 110-280s ahead of
-`match_time`. Pre-fix trims were centered on the wrong moment.
-
-**Fix in code**: `build_jamme_demolist.py` now passes `human_to_ms(human_time)`
-not `time_raw` to `demotrimmer.exe`. **Bug class**: any time you add a new
-upstream demo source with different timing semantics, audit the trimmer.
-
-### jaMME `+demoList` vs `+demo`
-
-The capture autoexec in `mmedemos.cfg` only fires under `+demoList` (batch)
-mode. Direct `+demo` invocation skips the autoexec, so no capture pipe is
-opened, so no clip is produced.
-
-**Workaround**: always use `+demoList` even for a single clip. `render_clips.py`
-writes a 1-line `_single_clip.txt` per render.
-
-### jaMME caches per-demo state in `mme/mmedemos/<name>.mme`
-
-These are NOT config files — they're pre-parsed binary demo caches. If you
-replace `mme/demos/fNNNN.dm_26` with new content but leave `mme/mmedemos/fNNNN.mme`
-in place, jaMME plays the cached old content silently.
-
-**Fix**: stage 4's wipe step removes `mme/mmedemos/fNNNN.mme` along with the
-`.dm_26`. If the wipe is silently defeated by Windows file locks (from a
-recently-finished render), you'll get the wrong clip rendered.
-
-### `mme/capture/<cid>/clip.mp4` is the per-render scratch path
-
-NOT `GameData/clip.mp4` and NOT `mme/captures/<cid>.mp4` directly. jaMME's
-`%o` placeholder in `mme_pipeCommand` resolves to `mme/capture/<projectname>/clip`,
-where `<projectname>` matches the capture project loaded by the demolist.
-
-`render_clips.py` moves `mme/capture/<cid>/clip.mp4` → `mme/captures/<cid>.mp4`
-on success. The flat `mme/captures/` directory is the canonical "final clip"
-location.
-
-### ffmpeg `-preset slow` finalizes asynchronously
-
-Up to 90 seconds after jaMME exits, ffmpeg is still draining its frame queue
-and finalizing the mp4 mux. Checking `clip.mp4` immediately after jaMME exit
-gives a false-negative.
-
-**Fix**: `render_clips.py` polls for size stability (file exists AND size
-unchanged for 2s, up to 90s total). The right knobs are constants at the top
-of the file — `FFMPEG_MAX_FINALIZE_S`, `FFMPEG_STABLE_S`.
-
-### Linux mount metadata lag (development-only)
-
-When working on this from a Linux sandbox view of the Windows filesystem,
-the mount sometimes serves stale metadata (mtime, size, content with
-trailing NUL bytes) for several seconds after a Windows-side write. The
-file is correct on Windows; the mount just hasn't refreshed.
-
-**Symptom**: bash sees an old version, Python on Windows sees the new
-version. JSON parse fails on the mount with "Extra data" or "Unterminated
-string" while the file is genuinely valid.
-
-**Fix**: nothing — wait, or read via the Windows path directly. Doesn't
-affect production runs.
-
-### `update_good.py` / `update_bad.py` are hardcoded to `xen_frags.json`
-
-Line 23 of each script: `JSON_FILE = ROOT / "xen_frags.json"`. The legacy
-text-file label-merge workflow (`new_good_frags.txt` → `update_good.py` →
-`good_client_frags_aggregated.json`) only resolves frags from the `xen` set.
-Feeding a JACTF clip name through this path produces
-`[WARN] time_raw N not in frags JSON` for every line.
-
-**Workaround**: Stage 6's `python/review/label_io.py` generalizes the source
-lookup over each clip's `predict_csv` field, so the Flask UI works for any
-set without modifying the legacy scripts. If you want a single code path,
-add `--source` CLI flag to `update_good.py` / `update_bad.py` and have it
-default to `xen_frags.json`.
-
-## Operational runbook
-
-### Daily / weekly review cycle
-
-```powershell
-# fetch + render + review
-cd C:\jactf_pipeline
-.\run_pipeline.ps1 -Since 1d
-cd python\review; .\run.bat
-# label, finish session, shutdown
-```
-
-### After labels are in, retrain
-
-```powershell
-cd C:\jactf_pipeline\python\predict
-.\venv\Scripts\python.exe predict_frags_ensemble.py _jactf_new_frags.json
-# new ensemble_predictions.csv replaces the old one; old model decisions
-# are not retained. The training set has now grown by N labels.
-```
-
-### "I rendered a bad batch — start over"
-
-```powershell
-cd C:\jactf_pipeline\a full jka install\game_directory\Jedi Academy\GameData
-
-# wipe all stage 4/5 artifacts
-Remove-Item mme\demos\f????.dm_26 -Force -ErrorAction SilentlyContinue
-Remove-Item mme\mmedemos\f????.mme -Force -ErrorAction SilentlyContinue
-Remove-Item mme\capture\f???? -Force -Recurse -ErrorAction SilentlyContinue
-Remove-Item mme\captures\f????.mp4 -Force -ErrorAction SilentlyContinue
-Remove-Item mme\render_state.json -Force -ErrorAction SilentlyContinue
-Remove-Item ffmpeglog.txt -Force -ErrorAction SilentlyContinue
-
-# re-stage and re-render
-cd C:\jactf_pipeline
-python python\predict\build_jamme_demolist.py --csv python\predict\_jactf_new_frags.ensemble_predictions.csv
-cd "a full jka install\game_directory\Jedi Academy\GameData"
-.\render_resilient.bat
-```
-
-### "I want to re-label something I already locked in"
-
-```powershell
-# launch review UI again — review_state.json persists, so labelled clips
-# show as labelled. Click a different vote button or press 1/2/3/4 to
-# update. label_io.apply_label removes from old corpus and adds to new
-# atomically.
-cd C:\jactf_pipeline\python\review
-.\run.bat
-```
-
-### "predict isn't picking up new training data"
-
-`predict_frags_ensemble.py` reads `good_client_frags_aggregated.json` and
-`bad_client_frags_aggregated.json` directly at training time — there's no
-intermediate cache. If your labels aren't reflected, check:
-
-```powershell
-# how many rows in each corpus?
-python -c "import json; print('good:', len(json.load(open(r'C:\jactf_pipeline\python\predict\good_client_frags_aggregated.json'))))"
-python -c "import json; print('bad:', len(json.load(open(r'C:\jactf_pipeline\python\predict\bad_client_frags_aggregated.json'))))"
-
-# find your most recent backup to confirm a write happened
-Get-ChildItem C:\jactf_pipeline\python\predict\backup\good_client_frags_aggregated_*.json |
-  Sort-Object LastWriteTime -Descending | Select -First 3
-```
-
-If a Stage 6 write attempt failed silently (rare), the backup wouldn't be
-created. Check `python/review/review_state.json` to confirm what the UI
-thinks is in the corpus, and the predict-dir aggregated files for what
-actually is.
-
-## Verification
-
-After any pipeline run, sanity checks:
-
-```powershell
-# 1. fresh demos arrived
-Get-ChildItem "C:\jactf_pipeline\python\trimming\demos source\_jactf_new\*.dm_26" |
-  Sort-Object LastWriteTime -Descending | Select -First 5 Name, Length, LastWriteTime
-
-# 2. dm_meta files generated
-Get-ChildItem "C:\jactf_pipeline\python\trimming\demos source\_jactf_new\*.dm_meta" |
-  Sort-Object LastWriteTime -Descending | Select -First 5 Name, Length, LastWriteTime
-
-# 3. predict CSV produced
-Get-ChildItem C:\jactf_pipeline\python\predict\_jactf_new_frags.ensemble_predictions.csv |
-  Format-Table Name, Length, LastWriteTime
-
-# 4. clip_manifest written
-$cm = Get-Content "C:\jactf_pipeline\a full jka install\game_directory\Jedi Academy\GameData\mme\clip_manifest.json" -Raw
-($cm | ConvertFrom-Json).Count
-
-# 5. mp4s rendered
-Get-ChildItem "C:\jactf_pipeline\a full jka install\game_directory\Jedi Academy\GameData\mme\captures\f????.mp4" |
-  Format-Table Name, Length, LastWriteTime
-```
-
-All five should produce reasonable counts and recent timestamps.
-
-## Future work
-
-- **Discord bot for community labelling** (Stage 7). Replaces the Flask UI's
-  reach problem with native Discord identity, role gates, and inline mp4
-  playback. See `python/review/README.md` future-work section for the
-  architecture sketch.
-- **Generalize `update_good.py` / `update_bad.py`** to take a `--source`
-  flag, removing the `xen_frags.json` hardcoding so a single label-merge
-  path works for both the legacy text-file workflow and JACTF data.
-- **Profile `jkdemometadata.exe`** — full-match demos take ~172 CPU-sec each.
-  Likely dominated by JSON serialization or memory allocation. Not blocking,
-  but the slowest stage by an order of magnitude.
-- **Per-weapon coverage analysis** — confirm we have enough labelled examples
-  per `mod_name` for the per-weapon councils to converge. Currently good /
-  bad are 567 / 1269; some councils may be under-trained on rare weapons.
-- **Auto-retrain on label threshold** — every Nth label, automatically
-  re-fit the ensemble and surface the new precision/recall to the UI.
-- **Inline "play at 6.0s"** in the review UI so the kill moment is centered
-  on the controls strip when the user pauses to scrub.
-
-## License
-
-Personal project. No license. Use at your own risk.
+Personal project. Use at your own risk.

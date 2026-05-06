@@ -2,12 +2,12 @@
 
 Local Flask app for grading rendered highlight clips. Each thumbs-up/ok/down/ignore vote merges the underlying frag into the appropriate `*_client_frags_aggregated.json` file used by `predict_frags_ensemble.py` for the next training run.
 
-For the full project context (stages 0–5, file layout, gotchas), see [`C:\jactf_pipeline\README.md`](../../README.md).
+For the full project context (stages 0–5, file layout, gotchas), see [`<repo_root>\README.md`](../../README.md).
 
 ## Run
 
 ```powershell
-cd C:\jactf_pipeline\python\review
+cd <repo_root>\python\review
 .\run.bat
 # open http://127.0.0.1:5057/
 ```
@@ -60,14 +60,6 @@ When you vote `good` on clip `f0001`:
 
 Re-labelling a clip removes it from the previous label's aggregated file before adding to the new one — predict_frags_ensemble.py would see contradictory training signal otherwise.
 
-## Why this bypasses `update_good.py`
-
-`update_good.py` and `update_bad.py` are hardcoded at line 23 to read `xen_frags.json` as the source corpus. JACTF clips come from `_jactf_new_frags.json`, so the legacy path can't resolve them — `time_raw` lookups would fail with `[WARN] not in frags JSON`.
-
-The `label_io.py` module replicates `update_good.py`'s dedup logic verbatim (`normalise_name`, `dedup_key`) but generalizes the source lookup over `predict_csv` (the field is on each clip in `clip_manifest.json`). End result: same aggregated-file shape, same dedup behaviour, more sources supported.
-
-If you want to fold this generalization back into `update_good.py` / `update_bad.py` for the legacy text-file workflow, the easy path is to add an `--source` CLI flag and keep the old default of `xen_frags.json`.
-
 ## File layout
 
 ```
@@ -90,20 +82,20 @@ review/
 
 ```powershell
 # 1. baseline
-python -c "import json; print(len(json.load(open(r'C:\jactf_pipeline\python\predict\good_client_frags_aggregated.json'))))"
+python -c "import json; print(len(json.load(open(r'<repo_root>\python\predict\good_client_frags_aggregated.json'))))"
 # e.g. 567
 
 # 2. label one clip via UI as good
 
 # 3. confirm
-python -c "import json; print(len(json.load(open(r'C:\jactf_pipeline\python\predict\good_client_frags_aggregated.json'))))"
+python -c "import json; print(len(json.load(open(r'<repo_root>\python\predict\good_client_frags_aggregated.json'))))"
 # 568
 
 # 4. confirm backup
-ls C:\jactf_pipeline\python\predict\backup\good_client_frags_aggregated_*.json | sort -bottom 1
+ls <repo_root>\python\predict\backup\good_client_frags_aggregated_*.json | sort -bottom 1
 
 # 5. confirm review_state
-type C:\jactf_pipeline\python\review\review_state.json
+type <repo_root>\python\review\review_state.json
 ```
 
 ## API surface

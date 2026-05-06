@@ -26,7 +26,7 @@ if not exist jamme.exe (
 REM prefer "python", fall back to "py"
 where python >nul 2>nul
 if %ERRORLEVEL% equ 0 (
-    python "C:\jactf_pipeline\python\predict\render_clips.py" %*
+    python "..\..\..\..\..\python\predict\render_clips.py" %*
 ) else (
-    py "C:\jactf_pipeline\python\predict\render_clips.py" %*
+    py "..\..\..\..\..\python\predict\render_clips.py" %*
 )

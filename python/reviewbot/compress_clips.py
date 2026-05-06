@@ -2,7 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 
-captures_dir = Path(r"C:\jactf_pipeline\a full jka install\game_directory\Jedi Academy\GameData\mme\captures")
+captures_dir = Path(__file__).resolve().parents[2] / "a full jka install/game_directory/Jedi Academy/GameData/mme/captures"
 
 def compress_clips():
     count = 0

@@ -2,7 +2,7 @@ import subprocess
 import os
 from pathlib import Path
 
-source = Path(r"C:\jactf_pipeline\a full jka install\game_directory\Jedi Academy\GameData\mme\captures\f0005.mp4")
+source = Path(__file__).resolve().parents[2] / "a full jka install/game_directory/Jedi Academy/GameData/mme/captures/f0005.mp4"
 target_limit = 9.8 * 1024 * 1024 # 9.8 MB
 
 def test_crf(crf):

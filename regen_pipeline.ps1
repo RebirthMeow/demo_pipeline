@@ -6,7 +6,7 @@
 #   4. re-run scanner.py once per player set, writing aggregated *_frags.json
 #
 # Run from a PowerShell prompt:
-#   cd C:\jactf_pipeline
+#   cd <repo_root>
 #   .\regen_pipeline.ps1
 #
 # Optional flags:

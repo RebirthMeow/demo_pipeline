@@ -5,7 +5,7 @@
 # Each stage is idempotent - safe to re-run any time.
 #
 # Run from a PowerShell prompt:
-#   cd C:\jactf_pipeline
+#   cd <repo_root>
 #   .\run_pipeline.ps1
 #
 # Optional flags (skip individual stages):
